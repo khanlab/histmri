@@ -1,0 +1,105 @@
+#!/bin/bash
+
+function usage {
+ 
+ echo "Runs ex-hist registration scripts for epilepsy Neo/Hp"
+ echo ""
+ echo "  REQUIRES: "
+ echo "     <in_hist_dir>/<subj>/tif:  containing  HE and NEUN tif files & orientation.csv"
+ echo "     <in_mri_dir>/<subj>/*/Neo/MRI_ExHistReg.nii.gz  (ex-vivo MRI image)"
+ echo ""
+ echo " Creates output files in <out_root_dir>"
+ echo ""
+ echo " Usage:  $0 <in_mri_dir> <in_hist_dir> <out_root_dir> <subjid> <opts>" 
+ echo "   -t <th>		Set threshold for ex-vivo MRI (default 50; use 0 if already masked)"
+ echo ""
+ echo ""
+ exit 0 
+}
+
+
+
+
+if [ "$#" -lt 4 ]
+then
+
+usage
+
+fi
+
+
+
+execpath=`dirname $0`
+
+
+mri_dir=$1
+hist_dir=$2
+out_dir=$3
+subj=$4
+shift 4
+
+
+struct=Neo
+
+
+#check if required files exist:
+in_mri=`ls $mri_dir/$subj/*/${struct}/MRI_ExHistReg.nii.gz  | head -n 1`
+if [ -e "$in_mri" ]
+then
+echo "Input MRI: $in_mri"
+else
+    echo "Cannot find input MRI in $mri_dir/$subj/*/${struct}/MRI_ExHistReg.nii.gz"
+    exit 1
+fi
+
+
+
+orient_csv=$hist_dir/$subj/tif/orientation.csv
+if [ ! -e $orient_csv ]
+then
+     echo "orientation.csv does not exist in $hist_dir/$subj/tif !"
+     exit 1
+ fi
+
+#working resolution in microns (100um typical)
+res_um=100
+
+
+#import HE grayscale & rgb as .mat files at ${res_um}um resolution
+$execpath/02_importHistMatGrayscaleRGB  $hist_dir $out_dir $struct HE ${res_um} $subj
+
+#import NEUN grayscale & rgb as .mat files at ${res_um}um resolution
+$execpath/02_importHistMatGrayscaleRGB  $hist_dir $out_dir $struct NEUN ${res_um} $subj
+
+$execpath/02_importHistMatGrayscaleRGB  $hist_dir $out_dir $struct NEUN ${res_um} $subj
+
+
+#convert from .mat to nii
+$execpath/31_genHistspaceFeatureMaps  $hist_dir $out_dir $struct HE ${res_um} Grayscale $subj
+$execpath/31_genHistspaceFeatureMaps  $hist_dir $out_dir $struct NEUN ${res_um} Grayscale $subj
+
+#coregister NEUN to HE
+$execpath/30_coregisterStainsToHE $out_dir $struct NEUN $subj
+
+#generate transformed nii images
+$execpath/31_genHistspaceFeatureMaps  $hist_dir $out_dir $struct NEUN ${res_um} Grayscale $subj
+
+
+
+#register ex MRI to HE (creating linear aligned space)
+$execpath/20_registerHistToMRI $in_mri $out_dir $struct HE ${res_um} $subj
+
+
+#generate aligned space hist images
+$execpath/32_genAlignedFeatureMaps $out_dir $struct NEUN ${res_um} Grayscale $subj
+$execpath/32_genAlignedFeatureMaps $out_dir $struct HE ${res_um} Grayscale $subj
+
+
+#deformable (non-rigid) registration of grayscale HE to MRI
+$execpath/40_regDeformableStainToAlignedMRI  $out_dir $struct HE ${res_um} $subj
+
+#deformable (non-rigid) registration of grayscale NEUN to MRI
+$execpath/40_regDeformableStainToAlignedMRI  $out_dir $struct NEUN ${res_um} $subj
+
+
+#runMatlabCmd generateFieldFraction "'$hist_dir'" "'$subj'" "'$struct'" "'NEUN'" "'$out_dir'" "${res_um}" "5" 

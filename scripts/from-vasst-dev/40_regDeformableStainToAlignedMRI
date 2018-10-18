@@ -1,0 +1,52 @@
+#!/bin/bash
+
+
+
+if [ "$#" -lt 5 ]
+then
+    echo "Performs 2D slice-to-slice non-linear registration between grayscale histology and mri stack in aligned space"
+    echo""
+    echo "Usage: $0 <data_dir> <structure> <stain> <resolution (um)> <subject id>"
+ exit 0
+fi
+
+data_dir=$1
+struct=$2
+stain=$3
+res_um=$4
+subj=$5
+shift 5
+
+
+mri_nii=$data_dir/$subj/mri_hist_reg_${struct}_${res_um}um/aligned/mri_rigid_${res_um}um.nii.gz
+hist_nii=$data_dir/$subj/${res_um}um_Grayscale/aligned/${struct}_${stain}/grayscale_rigid_${res_um}um.nii.gz
+
+if [ ! -e $hist_nii ]
+then
+ echo "Hist nifti $hist_nii does not exist!"
+ exit 1
+fi
+
+if [ ! -e $mri_nii ]
+then
+ echo "Ex MRI nifti $mri_nii does not exist!"
+ exit 1
+fi
+
+nreg_dir=$data_dir/$subj/mri_hist_reg_${struct}_${res_um}um_nonrigid_$stain
+mkdir -p $nreg_dir
+
+
+hist_invcontrast=$data_dir/$subj/${res_um}um_Grayscale/aligned/${struct}_${stain}/grayscale_rigid_${res_um}um_invcontrast.nii.gz
+echo fslmaths $hist_nii -sub 255 -abs -uthr 254 -thr 15 $hist_invcontrast
+fslmaths $hist_nii -sub 255 -abs -uthr 254 -thr 15 $hist_invcontrast
+
+
+
+hist_def_nii=$data_dir/$subj/${res_um}um_Grayscale/aligned/${struct}_${stain}/grayscale_nonrigid_${res_um}um_invcontrast.nii.gz
+
+echo reg_f3d_split2D $mri_nii $hist_nii $hist_def_nii $nreg_dir
+reg_f3d_split2D $mri_nii $hist_invcontrast $hist_def_nii $nreg_dir
+
+
+

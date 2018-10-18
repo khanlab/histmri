@@ -1,0 +1,57 @@
+#!/bin/bash
+
+if [ "$#" -lt 5 ]
+then
+ echo "Usage: $0  <ex_hist_reg_root> <ex_mri_nii> <subjid> <structure - Hp, Neo> <session"
+ exit 0
+fi
+
+data_dir=$1
+ex_mri=$2
+subj=$3
+struct=$4
+session=$5
+
+
+reg_dir=$data_dir/$subj/$session/$struct/3drigid_iter5
+out_dir=$reg_dir/../aligned_Ex_100um
+mkdir -p $out_dir
+
+
+
+
+echo mri_convert $reg_dir/reg_ex_mri.nii.gz -vs 0.1 0.1 4.4 $out_dir/reg_ex_mri_100um.nii.gz
+mri_convert $reg_dir/reg_ex_mri.nii.gz -vs 0.1 0.1 4.4 $out_dir/reg_ex_mri_100um.nii.gz
+echo reg_resample -flo $ex_mri -res $out_dir/reg_ex_mri_100um.nii.gz  -aff $reg_dir/../final_xfm/ex-aligned.xfm -ref $out_dir/reg_ex_mri_100um.nii.gz 
+reg_resample -flo $ex_mri -res $out_dir/reg_ex_mri_100um.nii.gz  -aff $reg_dir/../final_xfm/ex-aligned.xfm -ref $out_dir/reg_ex_mri_100um.nii.gz 
+
+#echo mri_convert $reg_dir/reg_ex_mri.nii.gz -vs 0.02 0.02 4.4 $out_dir/reg_ex_mri_20um.nii.gz
+#mri_convert $reg_dir/reg_ex_mri.nii.gz -vs 0.02 0.02 4.4 $out_dir/reg_ex_mri_20um.nii.gz
+#echo reg_resample -flo $ex_mri -res $out_dir/reg_ex_mri_20um.nii.gz  -aff $reg_dir/../final_xfm/ex-aligned.xfm -ref $out_dir/reg_ex_mri_20um.nii.gz 
+#reg_resample -flo $ex_mri -res $out_dir/reg_ex_mri_20um.nii.gz  -aff $reg_dir/../final_xfm/ex-aligned.xfm -ref $out_dir/reg_ex_mri_20um.nii.gz 
+
+mri_convert $reg_dir/reg_ex_mri.nii.gz -vs 0.1 0.1 0.1 $out_dir/reg_ex_mri_100um_iso.nii.gz
+reg_resample -flo $ex_mri -res $out_dir/reg_ex_mri_100um_iso.nii.gz  -aff $reg_dir/../final_xfm/ex-aligned.xfm -ref $out_dir/reg_ex_mri_100um_iso.nii.gz 
+
+if false
+then
+
+dti_dir=$reg_dir/../aligned_ExDTI
+mkdir -p $dti_dir
+
+#warp all DTI images to 100um space too
+for folder in smoothed_0.1 smoothed_0.2
+do
+mkdir -p $out_dir/dti_$folder
+for metric in FA MD V1 V2 V3 L1 L2 L3 
+do
+ prefix=${im%%.nii.gz}
+ echo reg_resample -flo $dti_dir/$folder/dti_$metric.nii.gz -res $out_dir/dti_$folder/dti_$metric.100um.nii.gz -ref $out_dir/reg_ex_mri_100um.nii.gz  -NN 0
+ reg_resample -flo $dti_dir/$folder/dti_$metric.nii.gz -res $out_dir/dti_$folder/dti_$metric.100um.nii.gz -ref $out_dir/reg_ex_mri_100um.nii.gz  -NN 0
+done
+done
+
+
+fi
+
+
