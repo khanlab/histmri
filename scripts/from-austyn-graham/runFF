@@ -1,0 +1,10 @@
+#!/bin/bash
+
+tif=$@
+
+for tif in $@
+do
+
+echo "singularity exec $SINGULARITY_OPTS  /project/6007967/akhanf/singularity/bids-apps/khanlab_vasst-dev_latest.img runMatlabCmd generateFieldFraction '`realpath $tif`'"
+
+done

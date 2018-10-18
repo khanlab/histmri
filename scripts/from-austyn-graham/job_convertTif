@@ -1,0 +1,19 @@
+#!/bin/bash
+
+svs=$1
+
+
+folder=${svs%/*}
+
+filename=${svs##*/}
+tif=${filename%%svs}tif
+
+if [ ! -e $folder/$tif ]
+then
+
+ cp -v $svs $SCRATCH/$filename
+ bfconvert -bigtiff $SCRATCH/$filename  $SCRATCH/$tif
+ cp -v $SCRATCH/$tif $folder/$tif
+ rm -f $SCRATCH/$tif $SCRATCH/$filename
+
+fi

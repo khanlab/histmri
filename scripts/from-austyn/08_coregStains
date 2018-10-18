@@ -1,0 +1,149 @@
+#!/bin/bash
+
+#coregisters additional stains to HE
+
+function usage {
+ 
+ echo "$0 <data_dir> <reference stain e.g. LFB>  <structure  e.g. WM > <stain e.g. NF> <subject ids>"
+ echo ""
+ exit 0 
+}
+
+
+if [ "$#" -lt 5 ]
+then
+
+usage
+
+fi
+
+data_dir=$1
+shift 1
+
+ref=$1
+
+struct=$2  # e.g. Hp
+in_stain=$3  #e.g. NEUN, or GFAP 
+
+shift 3
+
+data_dir_ref=$data_dir
+
+for subj in $@
+do
+
+
+
+hist_dir_ref=$data_dir_ref/$subj
+hist_dir=$data_dir/$subj
+
+
+coreg_dir_ref=$hist_dir_ref/coregisterTo${ref}
+coreg_dir=$hist_dir/coregisterTo${ref}
+mkdir -p $coreg_dir_ref $coreg_dir
+
+
+
+res=100 #microns
+res_mm=0.1 #mm
+
+#load up images
+
+sform_hist="$res_mm 0 0 0 0 $res_mm 0 0 0 0 $res_mm 0 0 0 0 1"
+
+
+
+nii_dir_ref=$hist_dir_ref/${res}um_Grayscale_nii/
+nii_dir=$hist_dir/${res}um_Grayscale_nii/
+
+for in_he in `ls $nii_dir_ref/${subj}_${struct}_*_${ref}.nii.gz`
+do
+
+
+slicen=${in_he##*${struct}_}
+slicen=${slicen%%_*}
+ 
+echo slicen $slicen
+
+
+
+in_hist=$nii_dir_ref/${subj}_${struct}_${slicen}_${ref}.nii.gz
+histslice=$coreg_dir_ref/${subj}_${struct}_${slicen}_${ref}.grayscale.nii.gz
+
+if [ -e $in_hist ]
+then
+#echo fslmaths $in_hist -Zmean $histslice
+#fslmaths $in_hist -Zmean $histslice
+#make background close to zero
+fslmaths $in_hist -sub 244 -uthr 0 -abs $histslice
+fi
+
+
+for stain in $in_stain
+do
+
+in_hist=$nii_dir/${subj}_${struct}_${slicen}_$stain.nii.gz
+
+if [ -e $in_hist ]
+then 
+
+histslice=$coreg_dir/${subj}_${struct}_${slicen}_$stain.grayscale.nii.gz
+
+echo fslmaths $in_hist -Zmean $histslice
+#fslmaths $in_hist -Zmean $histslice
+
+#make background close to zero
+fslmaths $in_hist -sub 244 -uthr 0 -abs $histslice
+
+fi
+
+done
+
+
+
+#now co-register non-HE slides to HE slide
+for stain in $in_stain
+do
+
+stain_hist=$coreg_dir/${subj}_${struct}_${slicen}_$stain.grayscale.nii.gz
+ref_hist=$coreg_dir_ref/${subj}_${struct}_${slicen}_$ref.grayscale.nii.gz
+
+reg_hist=$coreg_dir/${subj}_${struct}_${slicen}_${stain}_reg$ref.grayscale.nii.gz
+flirt_xfm=$coreg_dir/flirt_${subj}_${struct}_${slicen}_${stain}-$ref.xfm
+init_xfm=$coreg_dir/flirt_${subj}_${struct}_${slicen}_${stain}-$ref.init.xfm
+
+
+#if [ ! -e $flirt_xfm ]
+#then
+
+if [ -e $stain_hist ]
+then
+
+if [ -e $init_xfm ]
+then
+ initopt="-init $init_xfm"
+else
+ initopt=""
+fi
+
+echo flirt -in $stain_hist -out $reg_hist -omat $flirt_xfm -ref $ref_hist -2D -v -searchrx -180 180 -searchry -180 180 -coarsesearch 20 -finesearch 5 $initopt
+flirt -in $stain_hist -out $reg_hist -omat $flirt_xfm -ref $ref_hist -2D -v -searchrx -180 180 -searchry -180 180 -coarsesearch 20 -finesearch 5 $initopt
+
+fi
+
+#fi
+
+done
+
+
+
+
+done
+
+
+
+
+
+
+
+done #subj

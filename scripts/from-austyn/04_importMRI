@@ -1,0 +1,22 @@
+#!/bin/bash
+
+in_bids=~/graham/cfmm-bids/Khan/PostMortem.WMH
+out_dir=../mri_brainsets
+mkdir -p $out_dir
+
+#for set in `cat brainsets`
+for set in brainset01b
+do
+ 
+ for im in T1map FLAIR run-01_T2w run-02_T2w T2star 
+ do
+   echo cp -v $in_bids/sub-$set/anat/*${im}.nii.gz $out_dir/${set}_$im.nii.gz
+   cp -v $in_bids/sub-$set/anat/*${im}.nii.gz $out_dir/${set}_$im.nii.gz
+ done
+
+ #average T2w images
+ echo fslmaths $out_dir/${set}_run-01_T2w.nii.gz -add $out_dir/${set}_run-02_T2w.nii.gz -div 2 $out_dir/${set}_avg_T2w.nii.gz
+ fslmaths $out_dir/${set}_run-01_T2w.nii.gz -add $out_dir/${set}_run-02_T2w.nii.gz -div 2 $out_dir/${set}_avg_T2w.nii.gz
+
+
+done 

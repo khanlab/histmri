@@ -1,0 +1,32 @@
+#!/bin/bash
+
+
+if [ "$#" -lt 1 ]
+then
+echo "Usage: $0 <data_dir>" 
+exit 0
+fi
+
+data_dir=$1
+
+cd $data_dir
+
+
+# need to clean up:
+for svs in */tif/*LFB.svs
+do 
+    echo $svs;  
+    filename=${svs##*/};
+    out_tif=${svs%%svs}tif
+    if [ ! -e $out_tif ]
+    then 
+        cp -v $svs /tmp/$filename; 
+        ~/Downloads/bftools/bfconvert -bigtiff /tmp/$filename /tmp/${filename%%svs}tif ;
+        cp -vf /tmp/${filename%%svs}tif ${svs%%svs}tif;
+        rm -f /tmp/$filename /tmp/${filename%%svs}tif;
+    fi
+
+    #in case PWD is lost.. (filesystem issue)
+    cd $data_dir
+done
+
