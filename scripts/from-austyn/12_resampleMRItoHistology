@@ -1,0 +1,71 @@
+#!/bin/bash
+
+
+data_dir=../slidescanning
+subjects=./subjects
+#for subj in `head -n 1 $subjects`
+#for subj in `cat $subjects`
+for subj in sub_04 sub_12 sub_14 sub_15
+do
+
+ #look-up brainset
+ subj_num=${subj##*_}
+ match=`grep "$subj_num," set_to_subj.txt`
+ if [ ! -n "$match" ]
+ then
+  echo "no match for $subj!" 
+  continue
+ fi
+
+ brainset=${match##*,}
+ 
+ echo  $subj from $brainset
+
+ mri_dir=../mri_brainsets
+
+ for reg_dir in `ls -d $data_dir/$subj/transform/*`
+ do
+
+# reg_dir=$data_dir/$subj/transform
+ out_dir=$reg_dir/resampled
+ grayscale_dir=$data_dir/$subj/100um_Grayscale_nii
+
+ mkdir -p $out_dir
+
+ for tfm in `ls $reg_dir/*.tfm`
+ do
+
+  xfm=${tfm%.tfm}.ras.xfm
+echo    runMatlabCmd convertSlicerTfmToRAS "'$tfm'"  "'$xfm'"
+    runMatlabCmd convertSlicerTfmToRAS "'$tfm'"  "'$xfm'"
+  
+  prefix=${tfm##*/}
+  prefix=${prefix%%.*}
+  
+  ref=$grayscale_dir/$prefix.nii.gz
+  ref_iso=$out_dir/$prefix.iso.nii.gz
+  mri_convert $ref $ref_iso -vs 0.1 0.1 0.1
+  #ref=$reg_dir/$prefix.nii.gz
+  inv_xfm=${tfm%.tfm}.ras.inverse.xfm
+echo   reg_transform -ref $ref -invAffine $xfm $inv_xfm
+   reg_transform -ref $ref -invAffine $xfm $inv_xfm
+
+
+  for im in T1map FLAIR avg_T2w T2star 
+  do
+    in_mri=$mri_dir/${brainset}_$im.nii.gz
+    out_mri=$out_dir/${im}.regTo.${prefix}.nii.gz
+    out_hist=$out_dir/${prefix}.regTo.${im}.nii.gz
+echo    reg_resample -ref $ref_iso -flo $in_mri  -aff $inv_xfm -res $out_mri
+    reg_resample -ref $ref_iso -flo $in_mri  -aff $inv_xfm -res $out_mri
+echo     reg_resample -ref $in_mri -flo $ref_iso  -aff $xfm -res $out_hist
+    reg_resample -ref $in_mri -flo $ref_iso  -aff $xfm -res $out_hist
+
+  done #im
+
+ done #tfm
+
+done #reg_dir
+
+done #subj
+

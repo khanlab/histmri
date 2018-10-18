@@ -1,0 +1,34 @@
+#!/bin/bash
+
+ref=LFB
+
+
+data_dir=../slidescanning
+subjects=./subjects
+resolutions=./resolutions
+
+struct=WM
+annot=lesion
+
+ 
+   for res in `cat $resolutions`
+   do
+echo   ./01_runHistImport $data_dir $res `cat $subjects`
+echo  ./05_importHistAnnot $data_dir $struct $res $annot `cat $subjects`
+
+ done
+
+ for stain in `cat stains`
+ do
+   ./08_coregStains $data_dir $ref $struct $stain `cat $subjects`
+   ./09_quickcheckReg $data_dir $ref $struct $stain `cat $subjects`
+#   for res in `cat $resolutions`
+#   do
+
+#  ./10_genFeatNiftiRegtoRefStain $data_dir $struct $stain ${res}um_Grayscale `cat $subjects` 
+#  ./10_genFeatNiftiRegtoRefStain $data_dir $struct $stain ${res}um_RGB `cat $subjects` 
+#  done
+ done
+
+
+#  ./11_genNiftiRGB $data_dir `cat $subjects`

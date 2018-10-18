@@ -1,0 +1,40 @@
+#!/bin/bash
+
+
+if [ "$#" -lt 3 ]
+then
+echo "Usage: $0 <data_dir> <out_res_um, e.g. 100> <subjids>"
+exit 0
+fi
+
+data_dir=$1
+out_res=$2
+
+
+shift 2
+for subj in $@
+do
+
+#first, generate default orientation csv if does not exist
+tif_dir=$data_dir/$subj/tif
+csv=$tif_dir/orientation.csv
+ 
+if [ ! -e $csv ]
+then
+  echo "Warning: orientation.csv does not exist for $subj, creating default orientation.csv"
+
+pushd $tif_dir  
+for tif in `ls *.svs`
+do
+echo "$tif,1" >> orientation.csv
+done
+popd
+ 
+fi
+
+
+#now run import script
+runMatlabCmd genHistNiftiPngFromThumbnail "'$data_dir'" "$out_res" "'$subj'"
+
+
+done
