@@ -1,0 +1,19 @@
+#!/bin/bash
+
+
+for subj in $@
+do
+
+./01_genFeatNiftiRegToHE Histology Neo NEUN 100um_5umPad_FeatureMaps $subj
+
+./02_genAlignedFeatureMaps Histology Neo NEUN 100um_5umPad_FeatureMaps $subj
+
+./01_genFeatNiftiRegToHE Histology Neo NEUN 100um_Grayscale $subj
+
+./02_genAlignedFeatureMaps Histology Neo NEUN 100um_Grayscale $subj
+
+./XX1_regDeformableStainToAlignedMRI Histology Neo NEUN 100um_Grayscale grayscale $subj
+
+./XX2_applyDeformableToStain Histology Neo NEUN 100um_5umPad_FeatureMaps 100um_Grayscale grayscale $subj
+
+done

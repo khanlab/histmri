@@ -1,0 +1,51 @@
+#!/bin/bash
+
+hist=Histology
+subjlist=/eq-nas/$USER/EpilepsyHistology/$hist/subjects_$hist
+
+for struct in Hp Neo
+do
+
+for stain in NEUN GFAP
+do
+
+ ./1.0_coregisterStainsToHE $hist $struct $stain `cat $subjlist`
+ ./2.0_quickcheckReg  $hist $struct $stain `cat $subjlist`
+  ./3.0_applyXfmToPNGs $hist $struct $stain `cat $subjlist`
+
+done
+done
+
+
+hist=Histology_Hp
+subjlist=/eq-nas/$USER/EpilepsyHistology/$hist/subjects_$hist
+
+for struct in Hp
+do
+
+for stain in NEUN GFAP LUXFB
+do
+
+./1.0_coregisterStainsToHE $hist $struct $stain `cat $subjlist`
+./2.0_quickcheckReg  $hist $struct $stain `cat $subjlist`
+./3.0_applyXfmToPNGs $hist $struct $stain `cat $subjlist`
+
+done
+done
+
+
+hist=Histology_Neo
+subjlist=/eq-nas/$USER/EpilepsyHistology/$hist/subjects_$hist
+
+for struct in Neo
+do
+
+for stain in NEUN GFAP
+do
+
+ ./1.0_coregisterStainsToHE $hist $struct $stain `cat $subjlist`
+ ./2.0_quickcheckReg  $hist $struct $stain `cat $subjlist`
+ ./3.0_applyXfmToPNGs $hist $struct $stain `cat $subjlist`
+
+done
+done

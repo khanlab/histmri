@@ -1,0 +1,60 @@
+#!/bin/bash
+
+data_dir=$1
+struct=$2
+
+if [ "$#" -lt 3 ]
+then
+  echo "Usage: $0 <ex_hist_reg_dir>  <struct - Neo,Hp>   <subjids..>"
+  exit 0
+fi
+
+
+shift 2
+
+
+for subj in $@
+do
+
+# create boundary maps first:
+reg_dir=$data_dir/$subj/9.4T/$struct
+
+out_dir=$reg_dir/surf
+mkdir -p $out_dir
+
+
+mask=$reg_dir/aligned_ExDTI/mask.nii.gz
+ref=$reg_dir/3drigid_iter5/reg_ex_mri.nii.gz
+boundary_iso=$out_dir/mask_boundary.iso.nii.gz
+boundary=$out_dir/mask_boundary.nii.gz
+echo fslmaths $mask -ero $erode -mul -1 -add $mask $boundary_iso
+fslmaths $mask -ero $erode -mul -1 -add $mask $boundary_iso
+echo reg_resample -flo $boundary_iso -ref $ref -res $boundary -NN 0
+reg_resample -flo $boundary_iso -ref $ref -res $boundary -NN 0
+
+mask_vtk=$out_dir/Ex_aligned.vtk
+
+if [ ! -e $mask_vtk ]
+then 
+
+#next step requires mask.vtk to exist in aligned_ExDTI
+echo ""
+echo "In ITKsnap:"
+echo ""
+echo "1. Update mesh"
+echo "2. Ctrl-Shift-M"
+echo "3. hit next, paste filename as:"
+echo "  $mask_vtk"
+echo "4. Save, then Ctrl-Q"
+echo ""
+
+itksnap -m $mask -s $mask
+fi
+
+angle_error=$out_dir/hist_surfNormalError.nii.gz
+
+runMatlabCmd getHistSurfNormals "'$mask_vtk'" "'$boundary'" "'$angle_error'"
+
+
+
+done

@@ -1,0 +1,114 @@
+#!/bin/bash
+
+#coregisters additional stains to HE
+
+function usage {
+ 
+ echo "$0 <data_dir_name e.g. Histology_Hp > <structure  e.g. Hp > <stain e.g. NEUN> <SUBJIDs ...> "
+ echo ""
+ exit 0 
+}
+
+
+if [ "$#" -lt 4 ]
+then
+
+usage
+
+fi
+
+
+ref_name=Histology
+hist_name=$1  # e.g.  Histology_Hp
+struct=$2  # e.g. Hp
+in_stain=$3  #e.g. NEUN, or GFAP 
+
+shift 3
+
+
+data_dir_ref=/eq-nas/$USER/EpilepsyHistology/$ref_name
+data_dir=/eq-nas/$USER/EpilepsyHistology/$hist_name
+
+
+qc_name=coregisterHist.$hist_name.$struct.$in_stain
+qc_dir=QC/$qc_name
+
+mkdir -p $qc_dir
+
+out_html=$qc_dir/index.html
+
+
+echo '<HTML><TITLE>'$qc_name'</TITLE><BODY BGCOLOR="#aaaaff">' > $out_html
+
+
+
+for subj in $@
+do
+
+hist_dir_ref=$data_dir_ref/$subj
+hist_dir=$data_dir/$subj
+
+
+coreg_dir_ref=$hist_dir_ref/coregisterToHE
+coreg_dir=$hist_dir/coregisterToHE
+
+
+
+
+res=100 #microns
+res_mm=0.1 #mm
+
+#load up images
+
+nii_dir=$hist_dir/${res}um_nii/
+
+output_list=""
+
+
+for in_he in `ls $nii_dir/${subj}_${struct}_*_HE.nii`
+do
+
+
+slicen=${in_he##*${struct}_}
+slicen=${slicen%%_*}
+ 
+ref=HE
+#now co-register non-HE slides to HE slide
+for stain in $in_stain
+do
+
+
+#compare the following
+ref_hist=$coreg_dir_ref/${subj}_${struct}_${slicen}_$ref.grayscale.nii.gz
+reg_hist=$coreg_dir/${subj}_${struct}_${slicen}_${stain}_reg$ref.grayscale.nii.gz
+
+
+flirt_xfm=$coreg_dir/flirt_${subj}_${struct}_${slicen}_${stain}-$ref.xfm
+
+if [ -e $flirt_xfm -a -e $ref_hist -a -e $reg_hist ]
+then
+ echo "comparing $reg_hist and $ref_hist"
+# output_list="$output_list $ref_hist $reg_hist"
+
+ out_img=$qc_dir/${subj}_${struct}_${slicen}_${stain}-${ref}.png
+ out_img_name=${subj}_${struct}_${slicen}_${stain}-${ref}
+ slicer $ref_hist $reg_hist -u -z 0 $out_img
+  echo '<a href="'${out_img_name}'.png"><img src="'${out_img_name}'.png" >' ${out_img_name}'</a><br>' >> $out_html
+ 
+fi
+
+
+
+
+done
+
+
+
+done
+
+
+done
+
+echo '</BODY></HTML>' >> $out_html
+
+echo chromium-browser $out_html

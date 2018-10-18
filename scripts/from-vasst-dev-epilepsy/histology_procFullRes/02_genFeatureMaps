@@ -1,0 +1,42 @@
+#!/bin/bash
+
+
+if [ "$#" -lt 4 ]
+then
+echo "Usage: $0 <Histology Name - i.e. Histology or Histology_Neo> <structure - Hp or Neo>  <stain - e.g. NEUN>  <resolution - 100, 20>  <subjids>"
+exit 0
+fi
+
+hist_name=$1
+structure=$2
+stain=$3
+resolution=$4
+
+
+padding=5 # 5 microns
+
+data_dir=/eq-nas/$USER/EpilepsyHistology/$hist_name
+
+
+if [ "$resolution" = 20 ]
+then
+  padding=50 # 50 microns -- legacy value used by Maged -- 
+fi
+
+
+shift 4
+
+
+for subj in $@
+do
+
+
+ for tif in `ls  $data_dir/$subj/tif/*${structure}*${stain}*.tif`
+ do
+
+ echo runMatlabCmd generateFeatureMaps "'$tif'" "$resolution" "$padding"
+ runMatlabCmd generateFeatureMaps "'$tif'" "$resolution" "$padding"
+done
+
+
+done

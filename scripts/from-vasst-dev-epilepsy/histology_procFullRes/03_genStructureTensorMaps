@@ -1,0 +1,29 @@
+#!/bin/bash
+
+
+hist_name=$1
+struct=$2
+stain=$3
+
+if [ "$#" -lt 4 ]
+then
+  echo "Usage: $0 <hist_name - Histology> <struct - Neo,Hp>  <stain   NEUN, GFAP, LUXFB>   <subjids..>"
+  exit 0
+fi
+
+hist_dir=/eq-nas/$USER/EpilepsyHistology/$hist_name
+shift 3
+
+for subj in $@
+do
+
+
+ for tif in `ls  $hist_dir/$subj/tif/*${structure}*${stain}*.tif`
+ do
+
+
+     echo runMatlabCmd  generateStructuralTensorMaps "'$tif'"
+     runMatlabCmd  generateStructuralTensorMaps "'$tif'"
+  done  
+  
+done

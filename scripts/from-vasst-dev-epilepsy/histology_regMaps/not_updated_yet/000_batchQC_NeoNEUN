@@ -1,0 +1,19 @@
+#!/bin/bash
+
+for subj in $@
+do
+
+
+hist=~/EpilepsyHistology/Histology/$subj/100um_5umPad_FeatureMaps/aligned/Neo_NEUN/count_deformable_100um.nii.gz 
+mri=~/EpilepsyDatabase/$subj/Processed/Ex-Hist_Reg/9.4T/Neo/aligned_Ex_100um/reg_ex_mri_100um.nii.gz 
+fa=~/EpilepsyDatabase/$subj/Processed/Ex-Hist_Reg/9.4T/Neo/aligned_Ex_100um/dti_smoothed_0.2/dti_FA.100um.nii.gz
+
+echo $subj
+echo displaying $hist, $mri, $fa
+ls -l $hist
+ls -l $mri
+ls -l $fa
+
+fslview $hist $mri $fa
+done
+

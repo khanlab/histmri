@@ -1,0 +1,97 @@
+#!/bin/bash
+
+
+if [ "$#" -lt 6 ]
+then
+ echo "This script uses Ex-Hist-Reg transforms to bring feature-map NII files into the aligned-ex space"
+ echo "Usage: $0 <ex-hist_reg dir> <hist name -- e.g.: Histology or Histology_Hp> <structure> <stain>  <featuremapdir - e.g.: 100um_FeatureMaps> <subject ids ...>"
+ exit 0
+fi
+
+reg_data_dir=$1
+hist_name=$2
+hist_dir=/eq-nas/$USER/EpilepsyHistology/$hist_name
+struct=$3
+stain=$4
+feat_dir=$5
+shift 5
+
+
+res_um=${feat_dir%%um*}
+
+
+for subj in $@
+do
+
+#get sessionsubj struct session
+exhistreg_dir=`ls -d $reg_data_dir/$subj/*/$struct`
+session=${exhistreg_dir%/*}
+session=${session##*/}
+
+echo subject: $subj, session: $session
+
+
+for in_dir in `ls -d $hist_dir/$subj/$feat_dir/histspace/*`
+do
+
+ 
+ featname=${in_dir##*/}
+out_dir=$hist_dir/$subj/$feat_dir/aligned/${struct}_${stain}
+mkdir -p $out_dir
+
+ imtype=${featname:0:6} #get 1st 6 chars
+ echo "imtype: $imtype"
+ 
+nii=$out_dir/${featname}_rigid_${res_um}um.nii.gz
+
+# if [ ! -e $nii ]
+# then
+
+ cd `pwd` 
+ if [ "$imtype" = "vector" ]
+ then
+
+
+ runMatlabCmd genAlignedFeatureMapVecOrient "'$reg_data_dir'" "'$subj'" "'$struct'" "'$session'" "'$stain'" "'$in_dir'" "'$out_dir'" "'$featname'" 
+ else  
+ runMatlabCmd genAlignedFeatureMap "'$reg_data_dir'" "'$subj'" "'$struct'" "'$session'" "'$stain'" "'$in_dir'" "'$out_dir'" "'$featname'" "$res_um"
+
+ fi
+#fi
+
+
+
+for spacing in 0.2 1.0
+do
+
+ cd `pwd` 
+thin=$out_dir/${featname}_rigid_${res_um}um.${spacing}thick.nii.gz
+
+echo mri_convert $nii $thin -vs 0.1 0.1 $spacing
+ mri_convert $nii $thin -vs 0.1 0.1 $spacing
+
+ cd `pwd` 
+#convert to thin slice 
+runMatlabCmd convertThickSlicesToGaps "'$nii'" "'$thin'" "'$thin'"
+
+done #spacing
+ 
+done
+
+
+#convert red green blue if they exist to rgb
+
+out_dir=$hist_dir/$subj/$feat_dir/aligned/${struct}_${stain}
+
+red=$out_dir/red_rigid_${res_um}um.nii.gz
+green=$out_dir/green_rigid_${res_um}um.nii.gz
+blue=$out_dir/blue_rigid_${res_um}um.nii.gz
+
+rgb=$out_dir/rgb_rigid_${res_um}um.nii.gz
+if [ -e $red -a -e $green -a -e $blue ]
+then
+echo convertNiftiRGBtoRGB24bit $red $green $blue $rgb
+convertNiftiRGBtoRGB24bit $red $green $blue $rgb
+fi
+
+done

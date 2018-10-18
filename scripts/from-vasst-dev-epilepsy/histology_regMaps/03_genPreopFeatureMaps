@@ -1,0 +1,146 @@
+#!/bin/bash
+
+
+
+if [ "$#" -lt 6 ]
+then
+ echo "This script uses PreEx_Reg transforms to bring ex-aligned images into the Pre-op space"
+ echo "Usage: $0 <pre-ex reg dir> <hist name -- e.g.: Histology or Histology_Hp> <structure> <stain>  <featuremapdir - e.g.: 100um_FeatureMaps> <subject ids ...>"
+ exit 0
+fi
+
+pre_ex_dir=$1
+hist_name=$2
+hist_dir=/eq-nas/$USER/EpilepsyHistology/$hist_name
+struct=$3
+stain=$4
+feat_dir=$5
+
+
+shift 5
+
+
+for subj in $@
+do
+ work_dir=$hist_dir/$subj/$feat_dir
+ aligned_dir=$work_dir/aligned/${struct}_${stain}
+
+ out_dir=$work_dir/preop/${struct}_${stain}
+ if [ ! -e $aligned_dir ]
+ then
+  echo "$aligned_dir does not exist!"
+  continue;
+ fi
+ 
+ mkdir -p $out_dir
+
+ xfm_dir=$pre_ex_dir/$subj/$struct/final_xfm
+ init_dir=$pre_ex_dir/$subj/$struct/Init_images
+ init_xfm_dir=$pre_ex_dir/$subj/$struct/Init_xfms
+
+
+ xfm=$xfm_dir/aligned-pre.xfm
+ ref_04mm=$init_dir/T1map_crop_res0.4.nii.gz
+ nreg_cpp=$xfm_dir/NregSim_T1_cpp.nii.gz
+
+if [ ! -e $ref_04mm  ]
+then
+ echo "T1 resampled to 04mm, $ref_04mm does not exist!"
+ continue
+fi
+
+ hires=0.2;
+
+ ref_hires=$out_dir/T1map_crop_res$hires.nii.gz
+ if [ ! -e $ref_hires ]
+ then
+   echo mri_convert $ref_04mm -vs $hires $hires $hires $ref_hires
+   mri_convert $ref_04mm -vs $hires $hires $hires $ref_hires
+ fi
+
+
+if [ ! -e $xfm  ]
+then
+ echo "Transform from ex to pre, $xfm, does not exist!"
+ continue
+fi
+
+
+ for nii in `ls $aligned_dir/*.nii.gz`
+# for nii in `ls $aligned_dir/vector_orientation_rigid_100um.nii.gz`
+ do
+
+ prefix=${nii##*/}
+ prefix=${prefix%%.nii.gz}
+ 
+ imtype=${prefix:0:6} #get 1st 6 chars
+ echo "imtype: $imtype"
+ 
+  reg_04mm=$out_dir/$prefix.RegToPre04.nii.gz
+ reg_hires=$out_dir/$prefix.RegToPre${hires}.nii.gz
+nreg_04mm=$out_dir/$prefix.NregToPre04.nii.gz
+
+ echo reg_resample -flo $nii -ref $ref_04mm -res $reg_04mm -aff $xfm -NN 0 
+ reg_resample -flo $nii -ref $ref_04mm -res $reg_04mm -aff $xfm -NN 0
+
+ #resample to high-res:
+ echo reg_resample -flo $nii -ref $ref_hires -res $reg_hires -aff $xfm -NN 0
+ reg_resample -flo $nii -ref $ref_hires -res $reg_hires -aff $xfm -NN 0
+
+
+if [ "$imtype" = "vector" ]
+ then
+ reorient_reg_04mm=$out_dir/$prefix.RegToPre04.reorient.nii.gz
+ reorient_reg_hires=$out_dir/$prefix.RegToPre${hires}.reorient.nii.gz
+cd `pwd`
+ runMatlabCmd reorientVecField "'$reg_04mm'"  "'$xfm'" "'$reorient_reg_04mm'" 0
+cd `pwd`
+ runMatlabCmd reorientVecField "'$reg_hires'"  "'$xfm'" "'$reorient_reg_hires'" 0
+
+ fi
+ 
+
+ if [ "$struct" = "Neo" ]
+ then
+
+ if [ ! -e $nreg_cpp ]
+ then 
+   echo "nifty-reg non-rigid warp for Neo does not exist: $nreg_cpp"
+   continue
+ fi
+
+ echo reg_resample -flo $reg_04mm -ref $ref_04mm -res $nreg_04mm -cpp $nreg_cpp -NN 0
+ reg_resample -flo $reg_04mm -ref $ref_04mm -res $nreg_04mm -cpp $nreg_cpp -NN 0
+
+
+ #technically should by applying correction, by using the rotational component of the deformation field
+	# should be mostly negligible I think.. 
+
+ fi
+
+ if [ "$struct" = "Hp" ]
+ then
+ 
+ #plastimatch
+ plasti_warp=$init_xfm_dir/Plasti_Ex_T1.nii.gz
+ if [ ! -e $plasti_warp ]
+ then
+  echo "Plastimatch transform for Hp does not exist: $plasti_warp"
+  continue
+ fi
+
+ echo applywarp -i $reg_04mm -o $nreg_04mm -r $ref_04mm -w $plasti_warp --interp=spline
+ applywarp -i $reg_04mm -o $nreg_04mm -r $ref_04mm -w $plasti_warp --interp=spline
+
+ fi
+
+
+ done
+
+
+
+
+
+ 
+done
+

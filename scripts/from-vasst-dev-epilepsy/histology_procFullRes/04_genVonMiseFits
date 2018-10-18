@@ -1,0 +1,33 @@
+#!/bin/bash
+
+
+hist_name=$1
+struct=$2
+stain=$3
+
+if [ "$#" -lt 4 ]
+then
+  echo "Usage: $0 <hist_name - Histology> <struct - Neo,Hp>  <stain   NEUN, GFAP>   <subjids..>"
+  exit 0
+fi
+
+hist_dir=/eq-nas/$USER/EpilepsyHistology/$hist_name
+shift 3
+
+for subj in $@
+do
+
+  in_dir=$hist_dir/$subj/100um_StructuralTensors
+  out_dir=$hist_dir/$subj/100um_StructuralTensors_vonMises
+  mkdir -p $out_dir
+
+  for in_mat in `ls $in_dir/${subj}_${struct}*${stain}.mat`
+  do
+
+    mat_name=${in_mat##*/}
+    out_mat=${out_dir}/${mat_name}
+   
+     runMatlabCmd generateVonMisesFeatures "'$in_mat'" "'$out_mat'"
+  done  
+  
+done
