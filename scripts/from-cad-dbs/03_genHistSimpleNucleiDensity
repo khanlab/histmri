@@ -1,0 +1,32 @@
+#!/bin/bash
+
+
+if [ "$#" -lt 4 ]
+then
+echo "Usage: $0 <data_dir> <structure - Hp/Neo/SubcortL/SubcortR ..> <stain> <resolution - 100, 20> <subjids>"
+exit 0
+fi
+
+data_dir=$1
+structure=$2
+stain=$3
+resolution=$4
+
+padding=0
+
+shift 4
+
+
+for subj in $@
+do
+
+
+ for tif in `ls  $data_dir/$subj/tif/*${structure}*${stain}*.tif`
+ do
+
+ echo "runMatlabCmd generateNucleiDensity "'$tif'" "$resolution" "$padding""
+ runMatlabCmd generateNucleiDensity "'$tif'" "$resolution" "$padding"
+done
+
+
+done

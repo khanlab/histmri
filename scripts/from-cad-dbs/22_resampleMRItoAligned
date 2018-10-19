@@ -1,0 +1,60 @@
+#!/bin/bash
+
+if [ "$#" -lt 4 ]
+then
+ echo "Usage: $0  <data_dir> <structure - Hp/Neo/SubcortL/SubcortR ..> <resolution - 100,20> <subjids ...>"
+ exit 0
+fi
+
+data_dir=$1
+struct=$2
+resolution=$3
+shift 3
+
+
+
+
+for subj in $@
+do
+
+mri_dir=$data_dir/$subj/mri_${struct}
+reg_dir=$data_dir/$subj/mri_hist_reg_${struct}_${resolution}um
+ex_mri=$reg_dir/3drigid_iter5/reg_ex_mri.nii.gz 
+ref_mri=$reg_dir/3drigid_iter5/reg_ex_mri_${resolution}um.nii.gz 
+ref_mri_iso=$reg_dir/3drigid_iter5/reg_ex_mri_${resolution}um_iso.nii.gz 
+
+
+out_dir=$data_dir/$subj/mri_aligned_${struct}_${resolution}um
+out_dir_iso=$data_dir/$subj/mri_aligned_${struct}_${resolution}um_iso
+mkdir -p $out_dir $out_dir_iso
+
+
+xfm=$reg_dir/final_xfm/ex-aligned.xfm
+
+thickz=`fslval $ex_mri pixdim3`
+res_mm=`bashcalc "$resolution/1000"`
+echo mri_convert $ex_mri -vs $res_mm $res_mm $thickz $ref_mri
+mri_convert $ex_mri -vs $res_mm $res_mm $thickz $ref_mri
+echo mri_convert $ex_mri -vs $res_mm $res_mm $res_mm $ref_mri_iso
+mri_convert $ex_mri -vs $res_mm $res_mm $res_mm $ref_mri_iso
+
+
+for in_mri in `ls $mri_dir/*.nii*`
+do
+
+in_mri_name=${in_mri##*/}
+
+out_mri=$out_dir/$in_mri_name
+out_mri_iso=$out_dir_iso/$in_mri_name
+
+
+echo reg_resample -flo $in_mri -res $out_mri  -aff $xfm -ref $ref_mri
+reg_resample -flo $in_mri -res $out_mri  -aff $xfm -ref $ref_mri
+echo reg_resample -flo $in_mri -res $out_mri_iso  -aff $xfm -ref $ref_mri_iso
+reg_resample -flo $in_mri -res $out_mri_iso  -aff $xfm -ref $ref_mri_iso
+
+
+done
+
+done
+

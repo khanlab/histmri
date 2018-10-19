@@ -1,0 +1,71 @@
+#!/bin/bash
+
+if [ "$#" -lt 6 ]
+then
+ echo "Usage: $0 <hist name -- e.g.: Histology or Histology_Hp> <structure> <stain>  <featuremapdir - e.g.: 100um_FeatureMaps> <feat_name> <subject ids ...>"
+ exit 0
+fi
+
+hist_name=$1
+hist_dir=/eq-nas/$USER/EpilepsyHistology/$hist_name
+struct=$2
+stain=$3
+feat_dir=$4
+featname=$5
+shift 5
+
+
+res_um=${feat_dir%%um*}
+
+for subj in $@
+do
+
+#get sessionsubj struct session
+exhistreg_dir=`ls -d /eq-nas/$USER/EpilepsyDatabase/$subj/Processed/Ex-Hist_Reg/*/$struct`
+session=${exhistreg_dir%/*}
+session=${session##*/}
+
+echo subject: $subj, session: $session
+
+aligned_dir=$hist_dir/$subj/$feat_dir/aligned/${struct}_${stain}
+
+ 
+hist_nii=$aligned_dir/${featname}_rigid_${res_um}um.nii.gz
+mri_nii=$exhistreg_dir/aligned_Ex_100um/reg_ex_mri_${res_um}um.nii.gz
+
+if [ ! -e $hist_nii ]
+then
+ echo "Hist nifti $hist_nii does not exist!"
+ continue;
+fi
+
+if [ ! -e $mri_nii ]
+then
+ echo "Ex MRI nifti $mri_nii does not exist!"
+ continue;
+fi
+reg_dir=$aligned_dir/reg_hist_${featname}_mri
+hist_def_nii=$aligned_dir/${featname}_deformable_${res_um}um.nii.gz
+
+reg_f3d_split2D $mri_nii $hist_nii $hist_def_nii $reg_dir
+
+#for spacing in 0.2 1.0
+#do
+#
+# cd `pwd` 
+#thin=$out_dir/${featname}_rigid_100um.${spacing}thick.nii.gz
+#
+#echo mri_convert $nii $thin -vs 0.1 0.1 $spacing
+# mri_convert $nii $thin -vs 0.1 0.1 $spacing
+#
+# cd `pwd` 
+##convert to thin slice 
+#runMatlabCmd convertThickSlicesToGaps "'$nii'" "'$thin'" "'$thin'"
+#
+#done #spacing
+# 
+#done
+
+
+done
+

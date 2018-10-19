@@ -1,0 +1,94 @@
+#!/bin/bash
+
+
+if [ "$#" -lt 6 ]
+then
+ echo "This script uses Ex-Hist-Reg transforms to bring feature-map NII files into the aligned-ex space"
+ echo "Usage: $0 <data_dir> <structure> <stain> <resolution (um)> <featuremap name - e.g.: Annotations> <subject ids ...>"
+ exit 0
+fi
+
+hist_dir=$1
+struct=$2
+stain=$3
+res_um=$4
+feat_suffix=$5
+shift 5
+
+feat_dir=${res_um}um_$feat_suffix
+
+
+for subj in $@
+do
+
+#get sessionsubj struct session
+
+exhistreg_dir=$hist_dir/$subj/mri_hist_reg_${struct}_${res_um}um
+
+echo subject: $subj, exhistreg: $exhistreg_dir , feat_dir: $feat_dir
+
+
+for in_dir in `ls -d $hist_dir/$subj/$feat_dir/histspace/*`
+do
+
+ 
+ featname=${in_dir##*/}
+out_dir=$hist_dir/$subj/$feat_dir/aligned_initLmk/${struct}_${stain}
+mkdir -p $out_dir
+
+ imtype=${featname:0:6} #get 1st 6 chars
+ echo "imtype: $imtype"
+ 
+nii=$out_dir/${featname}_rigid_${res_um}um.nii.gz
+
+# if [ ! -e $nii ]
+# then
+
+ cd `pwd` 
+ if [ "$imtype" = "vector" ]
+ then
+
+echo needs updating
+echo runMatlabCmd genAlignedFeatureMapVecOrient "'$reg_data_dir'" "'$subj'" "'$struct'" "'$session'" "'$stain'" "'$in_dir'" "'$out_dir'" "'$featname'"  
+ else  
+ runMatlabCmd genAlignedFeatureMap_general_initLmk "'$hist_dir'" "'$subj'" "'$struct'"  "'$stain'" "'$in_dir'" "'$out_dir'" "'$featname'" "$res_um"
+
+ fi
+#fi
+
+
+
+for spacing in 0.2 1.0
+do
+
+ cd `pwd` 
+thin=$out_dir/${featname}_rigid_${res_um}um.${spacing}thick.nii.gz
+
+echo mri_convert $nii $thin -vs 0.1 0.1 $spacing
+ mri_convert $nii $thin -vs 0.1 0.1 $spacing
+
+ cd `pwd` 
+#convert to thin slice 
+runMatlabCmd convertThickSlicesToGaps "'$nii'" "'$thin'" "'$thin'"
+
+done #spacing
+ 
+done
+
+
+#convert red green blue if they exist to rgb
+
+out_dir=$hist_dir/$subj/$feat_dir/aligned/${struct}_${stain}
+
+red=$out_dir/red_rigid_${res_um}um.nii.gz
+green=$out_dir/green_rigid_${res_um}um.nii.gz
+blue=$out_dir/blue_rigid_${res_um}um.nii.gz
+
+rgb=$out_dir/rgb_rigid_${res_um}um.nii.gz
+if [ -e $red -a -e $green -a -e $blue ]
+then
+echo convertNiftiRGBtoRGB24bit $red $green $blue $rgb
+convertNiftiRGBtoRGB24bit $red $green $blue $rgb
+fi
+
+done

@@ -1,0 +1,72 @@
+#!/bin/bash
+
+if [ "$#" -lt 6 ]
+then
+ echo "Usage: $0 <hist name -- e.g.: Histology or Histology_Hp> <structure> <stain>  <featuremapdir to apply deformation to - e.g.: 100um_FeatureMaps> <featuremapdir where registration was performed>  <feat_name used to register> <subject ids ...>"
+ exit 0
+fi
+
+
+
+hist_name=$1
+hist_dir=/eq-nas/$USER/EpilepsyHistology/$hist_name
+struct=$2
+stain=$3
+feat_dir=$4
+reg_feat_dir=$5
+reg_featname=$6
+shift 6
+
+for subj in $@
+do
+
+#get sessionsubj struct session
+exhistreg_dir=`ls -d /eq-nas/$USER/EpilepsyDatabase/$subj/Processed/Ex-Hist_Reg/*/$struct`
+session=${exhistreg_dir%/*}
+session=${session##*/}
+
+echo subject: $subj, session: $session
+
+aligned_dir=$hist_dir/$subj/$feat_dir/aligned/${struct}_${stain}
+
+reg_dir=$hist_dir/$subj/$reg_feat_dir/aligned/${struct}_${stain}/reg_hist_${reg_featname}_mri
+
+if [ ! -e $reg_dir ]
+then
+ echo "Deformable registration folder, $reg_dir, does not exist!"
+ continue;
+fi
+
+
+#apply to all features
+
+for nii in `ls $aligned_dir/*_rigid_100um.nii.gz`
+do
+
+in_nii=$nii
+out_nii=${nii%_rigid_100um.nii.gz}_deformable_100um.nii.gz
+
+echo reg_resample_split2D $in_nii $reg_dir $out_nii -NN 0
+reg_resample_split2D $in_nii $reg_dir $out_nii -NN 0
+ 
+done
+#for spacing in 0.2 1.0
+#do
+#
+# cd `pwd` 
+#thin=$out_dir/${featname}_rigid_100um.${spacing}thick.nii.gz
+#
+#echo mri_convert $nii $thin -vs 0.1 0.1 $spacing
+# mri_convert $nii $thin -vs 0.1 0.1 $spacing
+#
+# cd `pwd` 
+##convert to thin slice 
+#runMatlabCmd convertThickSlicesToGaps "'$nii'" "'$thin'" "'$thin'"
+#
+#done #spacing
+# 
+#done
+
+
+done
+

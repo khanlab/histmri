@@ -1,0 +1,37 @@
+#!/bin/bash
+
+
+if [ "$#" -lt 3 ]
+then
+ echo "Usage: $0 <data_dir> <structure - Hp/Neo/SubcortL/SubcortR ..>  <resolution - 100, 20> <subjids>"
+ echo ""
+ echo " e.g.:  $0 ~/EpilepsyDatabase/epilepsyPhase1/Ex-Hist_Reg EPI_P014 Neo" # Post_fix"
+ echo ""
+ exit
+fi
+
+data_dir=$1
+struct=$2
+resolution=$3
+shift 3
+
+for subj in $@
+do
+
+
+mri=$data_dir/$subj/mri_hist_reg_${struct}_${resolution}um/3drigid_iter5/reg_ex_mri.nii.gz 
+if [ ! -n "$mri" ]
+then 
+ echo $subj mri does not exist!
+ exit 0
+fi
+
+
+
+ runMatlabCmd genFinalTransforms_general_initLmk "'$data_dir'" "'$subj'" "'$struct'" "$resolution"
+# runMatlabCmd transformCoordHistToMRI "'$subj'" "'$struct'" "'$session'"
+# runMatlabCmd TransformHistFidstoExNew "'$subj'" "'$struct'" "'$session'"
+# runMatlabCmd computeTRExHistNew "'$subj'" "'$struct'" "'$session'"
+
+
+done
