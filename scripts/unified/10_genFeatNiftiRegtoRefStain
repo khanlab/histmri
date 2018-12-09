@@ -131,6 +131,19 @@ fi
  done #nii  (once for each feature)
 
 
+# #convert RGB_nii if exists'
+# red=$work_dir/histspace/red
+# green=$work_dir/histspace/green
+# blue=$work_dir/histspace/blue
+# prefix=${tif##*/}
+# prefix=${prefix%%.tif}
+# echo "prefix: $prefix, red $red "
+# if [ -e $red -a -e $green -a -e $blue ]
+# then
+#  rgb=$work_dir/histspace/$prefix.nii.gz
+#  convertNiftiRGBtoRGB24bit $red/$prefix.nii.gz $green/$prefix.nii.gz $blue/$prefix.nii.gz $rgb
+# fi
+
  done #tif
 
 done
