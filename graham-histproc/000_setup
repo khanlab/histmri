@@ -1,0 +1,31 @@
+#!/bin/bash
+
+#requires neuroglia-helpers for job submission scripts
+# can add check for this later..
+
+
+execpath=`dirname $0`
+execpath=`realpath $execpath`
+
+histmri_repo=$execpath/../
+
+jobs_dir=$execpath/jobs
+
+in_root_dir=/project/6007967/cfmm-projects/Khan/EpilepsyQuantHistology/raw_data/Histology
+out_root_dir=/project/6007967/cfmm-projects/Khan/EpilepsyQuantHistology/proc
+
+
+echo ""
+echo "Initializing quant histology setup script:"
+echo " src=$src"
+echo " histmri_repo=$histmri_repo"
+echo " jobs_dir=$jobs_dir"
+echo " in_root_dir=$in_root_dir"
+echo " out_root_dir=$out_root_dir"
+echo ""
+
+#loading matlab for graham
+module load matlab/2017a
+
+#setting path
+PATH=$histmri_repo/bin:$histmri_repo/unified:$PATH

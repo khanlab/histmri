@@ -1,0 +1,22 @@
+#!/bin/bash
+
+execpath=`dirname $0`
+execpath=`realpath $execpath`
+
+
+source $execpath/000_setup
+
+
+if [ "$#" -lt 1 ]
+then
+	echo "Usage: $0 <subj>"
+	exit 0
+fi
+
+for subj in $@
+do
+
+  #import <in root dir> <out root dir>  <resolution in microns (e.g. 100 for 100um)> <subjid>
+  01_runHistImport $in_root_dir $out_root_dir 100 $subj
+
+done
