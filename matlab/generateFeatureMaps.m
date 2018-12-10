@@ -1,4 +1,4 @@
-function  generateFeatureMaps(tif,res_microns,pad_microns)
+function  generateFeatureMaps(tif,res_microns,pad_microns,out_root_dir)
 %subj,specimen,slice,stain)
 
 
@@ -51,7 +51,7 @@ end
 
 
     
-outdir=sprintf('%s/../%s_FeatureMaps',path,out_name);
+outdir=sprintf('%s/%s/%s_FeatureMaps',out_root_dir,subj,out_name);
 mkdir(outdir);
 
 %end
