@@ -24,7 +24,7 @@ stain=NEUN
 shift 2
 
 #02_genFeatureMaps writes all commands to stdout if ECHO_ONLY is set to 1.. using this to create a joblist
-joblist=$jobs_dir/genFeatMaps.list
+joblist=$jobs_dir/genFeatMaps.list.$out_res.$out_pad
 if [ -e $joblist ]; then rm -f $joblist; fi
 export ECHO_ONLY=1
 for subj in $@
@@ -36,6 +36,6 @@ done
 
 pushd $jobs_dir/../
 #can use -t option for test mode
-joblistSubmit $joblist -E $setup -j ShortSkinny
+joblistSubmit $joblist -E $execpath/000_setup -j Regular
 popd
 
