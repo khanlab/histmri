@@ -127,6 +127,9 @@ features={'count','area','perimeter','orientation','weighted_orientation','eccen
 featureVec=zeros(Nx,Ny,length(features));
 
 centroidVec=cell(Nx,Ny);
+areaVec=cell(Nx,Ny);
+angleVec=cell(Nx,Ny);
+eccenVec=cell(Nx,Ny);
 
 
 %get features of big and small neurons too
