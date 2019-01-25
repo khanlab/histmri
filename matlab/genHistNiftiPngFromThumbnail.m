@@ -33,7 +33,8 @@ for s=1:length(subjs);
     
     for f=1:length(tifs)
         tif=tifs{f};
-        
+
+		
         
         nii_file=sprintf('%s/%s.nii',niidir,tif(1:end-4));
         niirgb_file=sprintf('%s/%s.nii',niirgbdir,tif(1:end-4));
@@ -41,11 +42,11 @@ for s=1:length(subjs);
         png_file=sprintf('%s/%s.png',pngdir,tif(1:end-4));
         histFile=sprintf('%s/%s',histdir,tif);
         
-        
-        
-        
-        %from newer;
-        
+       
+	% go to next file if it doesn't exist..
+        if exist(histFile, 'file') ~= 2
+		continue;
+	end	
         
         %0.5um/pixel
         hist_res=0.5;
@@ -68,7 +69,7 @@ for s=1:length(subjs);
         %get the thumbnail
         whichImg=2;
         
-        disp(sprintf('getting 100um image from %d um tif',imgresolutions(whichImg)));
+        disp(sprintf('getting %dum image from %d um tif',out_res,imgresolutions(whichImg)));
         
         img=imread(histFile,whichImg,'PixelRegion',{[1,imgSizes(whichImg,1)],[1,imgSizes(whichImg,2)]});
         img_resized=imresize(img,[Nx,Ny]);
