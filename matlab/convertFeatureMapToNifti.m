@@ -1,8 +1,8 @@
-function convertFeatureMapToNifti( data_dir,subj,strct,stain_type, res_microns, feat_name,out_dir )
+function convertFeatureMapToNifti( hist_dir,subj,strct,stain_type, res_microns, feat_name,out_dir )
 
 
-
-mat_files=dir(sprintf('%s/%s/%dum_%s/%s_%s_*_%s.mat',out_dir,subj,res_microns,feat_name,subj,strct,stain_type));
+disp(sprintf('%s/%s/%s/%s_%s_*_%s.mat',out_dir,subj,feat_name,subj,strct,stain_type));
+mat_files=dir(sprintf('%s/%s/%s/%s_%s_*_%s.mat',out_dir,subj,feat_name,subj,strct,stain_type));
 
 
 for f=1:length(mat_files)
@@ -11,10 +11,12 @@ for f=1:length(mat_files)
     
     [path,name,~]=fileparts(featmap);
     
-    tif_dir=sprintf('%s/%s/tif',data_dir,subj);
+    tif_dir=sprintf('%s/%s/tif',hist_dir,subj);
     
-    tif=sprintf('%s/%s.tif',tif_dir,name);
-    
+    tif=sprintf('%s/%s.tif',hist_dir,name);
+
+    disp(featmap);
+    disp(tif);    
     if (~exist(featmap))
         fprintf('Feature map %s does not exist!\n',featmap);
         continue

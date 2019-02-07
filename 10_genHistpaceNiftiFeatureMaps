@@ -1,0 +1,56 @@
+#!/bin/bash
+
+
+
+if [ "$#" -lt 6 ]
+then
+ echo "This script converts feature-map MAT files to nifti, making use of histology orientation cfg files"
+ echo "Usage: $0 <in_hist_dir> <out_root_dir> <structure> <stain>  <featuremapdir - e.g.: 100um_FeatureMaps> <subject ids ...>"
+ exit 0
+fi
+
+hist_dir=$1
+out_dir=$2
+struct=$3
+stain=$4
+feat_dir=$5
+shift 5
+
+
+#by default, use these as orientation vars:
+orient_vars=""
+
+if [ "${feat_dir: -11}" = "FeatureMaps" ]
+then
+ orient_vars="{'orientation','weighted_orientation'}"
+fi
+
+
+if [ "${feat_dir: -9}" = "Laplacian" ]
+then
+  orient_vars="{'laplace_grad'}"
+fi
+
+if [ "${feat_dir: -17}" = "StructuralTensors" ]
+then
+  orient_vars="{'major_angle'}"
+fi
+
+if [ "${feat_dir: -8}" = "vonMises" ]
+then
+  orient_vars="{'mu','mu1','mu2'}"
+fi
+
+
+for subj in $@
+do
+ work_dir=$out_dir/$subj/$feat_dir
+
+ 
+ res_microns=${feat_dir%%um*}
+echo   runMatlabCmd convertFeatureMapToNifti "'$hist_dir'" "'$subj'" "'$struct'" "'$stain'" "$res_microns" "'$feat_dir'" "'$out_dir'"
+   runMatlabCmd convertFeatureMapToNifti "'$hist_dir'" "'$subj'" "'$struct'" "'$stain'" "$res_microns" "'$feat_dir'" "'$out_dir'"
+done
+
+
+
