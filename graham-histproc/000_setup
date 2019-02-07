@@ -3,8 +3,7 @@
 #requires neuroglia-helpers for job submission scripts
 # can add check for this later..
 
-
-execpath=`dirname $0`
+execpath=`dirname $BASH_SOURCE`
 execpath=`realpath $execpath`
 
 histmri_repo=$execpath/../
@@ -28,4 +27,4 @@ echo ""
 module load matlab/2017a
 
 #setting path
-PATH=$histmri_repo/bin:$histmri_repo/unified:$PATH
+export PATH=$histmri_repo/bin:$histmri_repo/unified:$PATH
