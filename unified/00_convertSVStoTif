@@ -1,0 +1,43 @@
+#!/bin/bash
+
+execpath=`dirname $BASH_SOURCE`
+execpath=`realpath $execpath`
+
+
+if [ "$#" -lt 3 ]
+then
+echo "Usage: $0 <in_hist_dir> <out_root_dir>  <subjids>"
+exit 0
+fi
+
+data_dir=$1
+out_dir=$2
+
+
+shift 2
+for subj in $@
+do
+
+svs_dir=$data_dir/$subj/svs
+tif_dir=$data_dir/$subj/tif
+
+
+for svs in `ls $svs_dir/*.svs`
+do
+
+ if [ "$ECHO_ONLY" = "1"  ]
+ then
+	 filename=${svs##*/}
+	 tif=$tif_dir/${filename%%.svs}.tif
+
+ echo "$execpath/../svsjpeg2k_to_bigtiff/svs2tif $svs $tif "
+ else
+ echo "Running locally: $execpath/../svsjpeg2k_to_bigtiff/svs2tif $svs $tif "
+  $execpath/../svsjpeg2k_to_bigtiff/svs2tif $svs $tif 
+ fi
+
+ 
+done
+ 
+
+done

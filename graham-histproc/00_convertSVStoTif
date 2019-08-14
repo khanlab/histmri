@@ -1,0 +1,33 @@
+#!/bin/bash
+
+execpath=`dirname $0`
+execpath=`realpath $execpath`
+
+
+source $execpath/000_setup
+
+
+
+if [ "$#" -lt 1 ]
+then
+	echo "Usage: $0 <subj...>"
+	exit 0
+fi
+
+
+#02_genFeatureMaps writes all commands to stdout if ECHO_ONLY is set to 1.. using this to create a joblist
+joblist=$jobs_dir/convertSVStoTif.list
+if [ -e $joblist ]; then rm -f $joblist; fi
+export ECHO_ONLY=1
+for subj in $@
+do
+
+  00_convertSVStoTif $in_root_dir $out_root_dir  $subj >> $joblist
+
+done
+
+pushd $jobs_dir/../
+#can use -t option for test mode
+joblistSubmit $joblist -E $execpath/000_setup -j ShortSkinny -t
+popd
+
