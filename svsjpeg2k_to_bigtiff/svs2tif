@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ "$#" -lt 2 ]
+then
+	echo "Converts input svs (with jpeg2000) to bigtiff; saves output with same filename/path as input, but with .tif extension"
+	echo "Usage: $0 <in_svs_file> <out_tif_file>"
+	exit 0
+fi
+svs=$1
+tif=$2
+
+
+folder=${svs%/*}
+
+filename=${svs##*/}
+
+temp_tif=$SCRATCH/${filename%%.svs}.tif
+
+ cp -v $svs $SCRATCH/$filename
+ bfconvert -bigtiff $SCRATCH/$filename  $temp_tif
+ cp -v $temp_tif $tif
+ rm -f $temp_tif $SCRATCH/$filename
+
