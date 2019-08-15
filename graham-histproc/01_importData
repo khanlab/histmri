@@ -16,7 +16,10 @@ fi
 for subj in $@
 do
 
+  for res in 25 50 100
+  do
   #import <in root dir> <out root dir>  <resolution in microns (e.g. 100 for 100um)> <subjid>
-  01_runHistImport $in_root_dir $out_root_dir 100 $subj
+  01_runHistImport $in_root_dir $out_root_dir $res $subj
+  done
 
 done
