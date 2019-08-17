@@ -32,13 +32,16 @@ end
 
 split=strsplit(name,'_');
 
-%get stain type at end of name:
-s=name;
 
 subj=name(1:8);
 stain_type=split{end};
 strct=split{end-2}; %Hp or Neo
 
+if (length(split) == 4)
+	subj=split{1};
+elseif (length(split) == 5)
+	subj=[split{1},'_', split{2}];
+end
 
 lores_png=sprintf('%s/../%dum_png/%s.png',path,res_microns,name);
 
