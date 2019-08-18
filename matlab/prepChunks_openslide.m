@@ -15,7 +15,7 @@ openslidePointer=openslide_open(histFile);
 
 [mppX,mppY,width0,height0,numberOfLevels,...
     downsampleFactors,objectivePower] = ...
-    openslide_get_slide_properties(openslidePointer)
+    openslide_get_slide_properties(openslidePointer);
 
 if(mppX ~= mppY)
     disp(sprintf('cannot proceed with non-square pixels, mppX = %g, mppY = %g',mppX,mppY));
@@ -28,7 +28,7 @@ hist_res=mppX;
 scalefac=res_microns./hist_res;
 
 
-[width0, height0] = openslide_get_level0_dimensions(openslidePointer)
+[width0, height0] = openslide_get_level0_dimensions(openslidePointer);
 
 % openslidePointer          - Pointer to openslide object to read from
 % xPos                      - Pixel position, with first position as 0 and in
