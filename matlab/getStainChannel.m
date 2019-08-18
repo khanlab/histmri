@@ -87,6 +87,7 @@ in_mod =[
 
         
         
+        MOD=createColourDeconvolveMatrix(in_mod);
         stain_img=computeColourDeconvolve(img,MOD);
         stain_img=stain_img(:,:,3);  %LFB component
        
@@ -102,6 +103,7 @@ in_mod =[
             0.00000000,0.00000000,0.0000000];   
 
         
+        MOD=createColourDeconvolveMatrix(in_mod);
         
         stain_img=computeColourDeconvolve(img,MOD);
         stain_img=stain_img(:,:,1);  %LFB component
