@@ -1,0 +1,38 @@
+#!/bin/bash
+
+execpath=`dirname $0`
+execpath=`realpath $execpath`
+
+
+source $execpath/000_setup
+
+
+
+if [ "$#" -lt 3 ]
+then
+	echo "Usage: $0 <out_res> <stain> <subj...>"
+        echo "    out_res: sets size and stride of NxN sliding window to compute and summarize features (units: um)"
+	exit 0
+fi
+
+out_res=$1
+stain=$2
+
+shift 2
+
+#02_genFeatureMaps writes all commands to stdout if ECHO_ONLY is set to 1.. using this to create a joblist
+joblist=$jobs_dir/genFieldFrac.list.$out_res.$stain
+if [ -e $joblist ]; then rm -f $joblist; fi
+export ECHO_ONLY=1
+for subj in $@
+do
+
+  04_genFieldFracMaps $in_root_dir $out_root_dir $stain $out_res $subj >> $joblist
+
+done
+
+pushd $jobs_dir/../
+#can use -t option for test mode
+joblistSubmit $joblist -E $execpath/000_setup -j ShortSkinny
+popd
+

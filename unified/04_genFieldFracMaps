@@ -1,0 +1,40 @@
+#!/bin/bash
+
+
+if [ "$#" -lt 4 ]
+then
+	echo "Usage: $0 <in_root_dir> <out_root_dir> <stain> <out_res> <subjids ...>"
+	echo "    in_root_dir:  root folder, will read from  {subj}/tif/{subj}_{struct}_{slidenum}_{stain}.tif"
+	echo "    out_root_dir: output folder, will create {subj}/{out_res}um_{out_pad}umPad_FieldFractions"
+	echo "    stain: to select stains to process e.g. NEUN "
+	echo "    out_res: sets size and stride of NxN sliding window to compute and summarize features (units: um)"
+	echo ""
+exit 0
+fi
+in_root_dir=$1
+out_root_dir=$2
+stain=$3 
+resolution=$4
+
+
+shift 4
+
+padding=0;
+
+for subj in $@
+do
+
+
+ for tif in `ls  $in_root_dir/$subj/tif/*${stain}.{tif,svs}`
+ do
+
+ if [ "$ECHO_ONLY" = "1"  ]
+ then
+ echo "runMatlabCmd generateFieldFraction '$tif' $resolution $padding '$out_root_dir'"
+ else
+ runMatlabCmd generateFieldFraction "'$tif'" "$resolution" "$padding" "'$out_root_dir'"
+ fi
+done
+
+
+done
