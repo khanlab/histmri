@@ -25,7 +25,7 @@ then
   echo "Warning: orientation.csv does not exist for $subj, creating default orientation.csv"
 
 pushd $tif_dir  
-for tif in `ls *.tif`
+for tif in `ls *.{tif,svs}`
 do
 echo "$tif,1" >> orientation.csv
 done
