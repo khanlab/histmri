@@ -1,6 +1,8 @@
 function  generateFeatureMaps(tif,res_microns,pad_microns,out_root_dir)
 %subj,specimen,slice,stain)
 
+init_openslide;
+
 
 %default uses 100um+5um pad -- Maged's 20um used 50um pad -- 
 
@@ -23,7 +25,10 @@ else
     out_name=sprintf('%dum_%dumPad',res_microns,pad_microns);
 end
 
-
+if ~exist('out_root_dir')
+    tif_folder=fileparts(fullfile(tif));
+    out_root_dir=fullfile(sprintf('%s/../../',tif_folder));
+end
 
 %tif='F:\Histology\EPI_P040\tif\EPI_P040_Neo_06_NEUN.tif';
 %tif='/links/Histology/EPI_P040/tif/EPI_P040_Hp_06_NEUN.tif'
@@ -43,14 +48,6 @@ elseif (length(split) == 5)
 	subj=[split{1},'_', split{2}];
 end
 
-lores_png=sprintf('%s/../%dum_png/%s.png',path,res_microns,name);
-
-if ~exist(lores_png)
-  system(sprintf('echo %s >> Missing_%dum_png.txt',lores_png,res_microns))
-else
-lores=imread(lores_png);
-end
-
 
 
     
@@ -66,18 +63,60 @@ ref_map=sprintf('%s/../%dum_FeatureMaps/%s.mat',path,ref_res,name);
 
 
 
-%0.5um/pixel
-hist_res=0.5;
+        openslidePointer=openslide_open(tif);
 
-scalefac=res_microns./hist_res;
+        % mppX                      - Resolution, microns per pixel
+        % mppY                      - Resolution, microns per pixel
+        % width0                     - Size in pixels
+        % height0                    - Size in pixels
+        % numberOfLevels            - Number of levels available
+        % downsampleFactors         - Downsample factors of the levels available
+        % objectivePower            - Magnification factor for level 0
+        
+        [mppX,mppY,width0,height0,numberOfLevels,...
+            downsampleFactors,objectivePower] = ...
+            openslide_get_slide_properties(openslidePointer)
 
+        if(mppX ~= mppY) 
+            disp(sprintf('cannot proceed with non-square pixels, mppX = %g, mppY = %g',mppX,mppY));
+            return;
+        end
+        
+        %was previously hardcoded to 0.5um/pixel
+        hist_res=mppX;
+        
+        scalefac=res_microns./hist_res;
+        
 
-%imgSizes=mexAperioTiff(tif);
-imgSizes=getAperioImgSizes(tif);
+        [width0, height0] = openslide_get_level0_dimensions(openslidePointer)
 
-ds_size=ceil(imgSizes(1,:)./scalefac);
-Nx=ds_size(1);
-Ny=ds_size(2);
+        % openslidePointer          - Pointer to openslide object to read from
+        % xPos                      - Pixel position, with first position as 0 and in
+        %                             the specified level reference frame
+        % yPos                      - Pixel position, with first position as 0 and in
+        %                             the specified level reference frame
+        % width                     - Widht of region to read in pixels
+        % height                    - Height of region to read in pixels
+        %
+        % OPTIONAL INPUT ARGUMENTS
+        % 'level'                   - Image level to read, 0 refers to original
+        %                             level
+        
+
+%         imgSizes=getAperioImgSizes(histFile);
+        imgSizes=double([height0,width0]);
+        ds_size=ceil(imgSizes./scalefac);
+        Nx=ds_size(1);
+        Ny=ds_size(2);
+        
+%         
+% 
+% %imgSizes=mexAperioTiff(tif);
+% imgSizes=getAperioImgSizes(tif);
+% 
+% ds_size=ceil(imgSizes(1,:)./scalefac);
+% Nx=ds_size(1);
+% Ny=ds_size(2);
 
 
 xout=0:0.5:255;
@@ -104,9 +143,10 @@ if (~skip_sweep)
 parfor i=1:Nx
     
     for j=1:Ny
+     %   fprintf('i=%d,j=%d\n',i,j);
+      
         
-    
-        [img]=getHiresChunkAperio(tif,Nx,Ny,i,j,0,0); 
+        [img]=getHiresChunkOpenslide(openslidePointer,Nx,Ny,i,j,0,0); 
         
         stain_img=getStainChannel(img,stain_type);
         
@@ -116,7 +156,6 @@ parfor i=1:Nx
         
         
     end
-    %i;
 end
 
 threshold=getStainThreshold(xout,total_counts,stain_type);
@@ -145,7 +184,7 @@ featureVec_big=zeros(Nx,Ny,length(features_bysize));
 
 
 %padwidth should be radius of pyramidal neuron (say 10um/2 = 5um)
-padWidth=pad_microns./hist_res; %in pixels
+padWidth=floor(pad_microns./hist_res); %in pixels
 
 
 %figure; 
@@ -167,7 +206,7 @@ disp(sprintf('%2.1f percent complete',double(i-1)./double(Nx)*100));
 %        for j=roiy
         
   %  j;
-        [img]=getHiresChunkAperio(tif,Nx,Ny,i,j,0,padWidth); 
+        [img]=getHiresChunkOpenslide(openslidePointer,Nx,Ny,i,j,0,padWidth); 
         
 %         fh=figure; imagesc(img);
 %         c=centroidVec{i,j};
