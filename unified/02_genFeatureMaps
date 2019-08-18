@@ -28,7 +28,7 @@ for subj in $@
 do
 
 
- for tif in `ls  $in_root_dir/$subj/tif/*${structure}*${stain}*.tif`
+ for tif in `ls  $in_root_dir/$subj/tif/*${structure}*${stain}.{tif,svs}`
  do
 
  if [ "$ECHO_ONLY" = "1"  ]
