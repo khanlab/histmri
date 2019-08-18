@@ -1,4 +1,4 @@
-function  generateFieldFraction(tif,res_microns,pad_microns)
+function  generateFieldFraction(tif,res_microns,pad_microns,out_root_dir)
 %subj,specimen,slice,stain)
 
 %converted tifs from svs trigger a type warning, this suppresses it..
@@ -25,7 +25,10 @@ else
     out_name=sprintf('%dum_%dumPad',res_microns,pad_microns);
 end
 
-
+if ~exist('out_root_dir')
+    tif_folder=fileparts(fullfile(tif));
+    out_root_dir=fullfile(sprintf('%s/../../',tif_folder));
+end
 
 %tif='F:\Histology\EPI_P040\tif\EPI_P040_Neo_06_NEUN.tif';
 %tif='/links/Histology/EPI_P040/tif/EPI_P040_Hp_06_NEUN.tif'
@@ -50,10 +53,9 @@ end
 
 
     
-outdir=sprintf('%s/../%s_FieldFractions',path,out_name);
+outdir=sprintf('%s/%s/%s_FieldFractions',out_root_dir,subj,out_name);
 mkdir(outdir);
 
-%end
 
 outmap=sprintf('%s/%s.mat',outdir,name);
 
