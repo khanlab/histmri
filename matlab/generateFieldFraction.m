@@ -1,4 +1,4 @@
-function  generateFieldFraction(tif,res_microns,pad_microns,out_root_dir)
+function  generateFieldFraction(tif,res_microns,pad_microns,out_root_dir,threshold)
 %subj,specimen,slice,stain)
 
 %converted tifs from svs trigger a type warning, this suppresses it..
@@ -30,6 +30,9 @@ if ~exist('out_root_dir')
     out_root_dir=fullfile(sprintf('%s/../../',tif_folder));
 end
 
+if ~exist('threshold')
+    threshold=0.5;
+end
 %tif='F:\Histology\EPI_P040\tif\EPI_P040_Neo_06_NEUN.tif';
 %tif='/links/Histology/EPI_P040/tif/EPI_P040_Hp_06_NEUN.tif'
 
@@ -53,7 +56,7 @@ end
 
 
     
-outdir=sprintf('%s/%s/%s_FieldFractions',out_root_dir,subj,out_name);
+outdir=sprintf('%s/%s/%s_FieldFractionsTH%g',out_root_dir,subj,out_name,threshold);
 mkdir(outdir);
 
 
@@ -91,10 +94,12 @@ fprintf('%2.1f percent complete\n',double(i-1)./double(Nx)*100);
 
        
         stain_img=getStainChannel(img,stain_type);
-        
+
+	stain_img=255-stain_img;
+        stain_img(stain_img<0)=0; %cap off at 0
+
         fraction=stain_img(:,:,1)./255;
         
-        threshold=0.5;
         
         %fraction of pixels that are > threshold
         featureVec(i,j,1)=sum(fraction(:)>threshold)./numel(fraction);

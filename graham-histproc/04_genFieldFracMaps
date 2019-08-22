@@ -8,26 +8,27 @@ source $execpath/000_setup
 
 
 
-if [ "$#" -lt 3 ]
+if [ "$#" -lt 4 ]
 then
-	echo "Usage: $0 <out_res> <stain> <subj...>"
+	echo "Usage: $0 <out_res> <stain> <threshold> <subj...>"
         echo "    out_res: sets size and stride of NxN sliding window to compute and summarize features (units: um)"
 	exit 0
 fi
 
 out_res=$1
 stain=$2
+threshold=$3
 
-shift 2
+shift 3
 
 #02_genFeatureMaps writes all commands to stdout if ECHO_ONLY is set to 1.. using this to create a joblist
-joblist=$jobs_dir/genFieldFrac.list.$out_res.$stain
+joblist=$jobs_dir/genFieldFrac.list.$out_res.$stain.TH$threshold
 if [ -e $joblist ]; then rm -f $joblist; fi
 export ECHO_ONLY=1
 for subj in $@
 do
 
-  04_genFieldFracMaps $in_root_dir $out_root_dir $stain $out_res $subj >> $joblist
+  04_genFieldFracMaps $in_root_dir $out_root_dir $stain $out_res $threshold $subj >> $joblist
 
 done
 
