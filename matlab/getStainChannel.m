@@ -23,10 +23,10 @@ switch stain_type
 %       figure;imagesc(stain_imgH(100:500,70:500,:));axis off;axis equal;  
 %       figure;imagesc(stain_img(100:500,70:500,:));axis off;axis equal;
 
-
-    stain_img=255-stain_img;
-    stain_img(stain_img<0)=0; %cap off at 0
-    
+% 
+%     stain_img=255-stain_img;
+%     stain_img(stain_img<0)=0; %cap off at 0
+%     
         
     case {'LUXFB','LFB'}
         
@@ -53,9 +53,9 @@ in_mod =[
     
         stain_img=stain_img(:,:,1);  %LFB component
 
-    
-    stain_img=255-stain_img;
-    stain_img(stain_img<0)=0; %cap off at 0
+%     
+%     stain_img=255-stain_img;
+%     stain_img(stain_img<0)=0; %cap off at 0
     
     
         
@@ -73,9 +73,9 @@ in_mod =[
     
     
 	stain_img=computeColourDeconvolve(img,MOD);
-    
-        stain_img=255-stain_img;
-    stain_img(stain_img<0)=0; %cap off at 0
+%     
+%         stain_img=255-stain_img;
+%     stain_img(stain_img<0)=0; %cap off at 0
     
     
     case 'LFBHE' %Luxol fast blue with H&E
@@ -91,9 +91,9 @@ in_mod =[
         stain_img=computeColourDeconvolve(img,MOD);
         stain_img=stain_img(:,:,3);  %LFB component
        
-
-    stain_img=255-stain_img;
-    stain_img(stain_img<0)=0; %cap off at 0
+% 
+%     stain_img=255-stain_img;
+%     stain_img(stain_img<0)=0; %cap off at 0
     
     case 'Biels'
         
@@ -108,9 +108,9 @@ in_mod =[
         stain_img=computeColourDeconvolve(img,MOD);
         stain_img=stain_img(:,:,1);  %LFB component
        
-
-    stain_img=255-stain_img;
-    stain_img(stain_img<0)=0; %cap off at 0
+% 
+%     stain_img=255-stain_img;
+%     stain_img(stain_img<0)=0; %cap off at 0
     
     otherwise
         disp('Unknown staining!');
