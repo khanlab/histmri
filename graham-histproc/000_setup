@@ -10,8 +10,8 @@ histmri_repo=$execpath/../
 
 jobs_dir=$execpath/jobs
 
-in_root_dir=/project/6007967/cfmm-projects/Khan/EpilepsyQuantHistology/raw_data/Histology
-out_root_dir=/project/6007967/cfmm-projects/Khan/EpilepsyQuantHistology/proc
+in_root_dir=/project/6007967/ext-data/hammond_hist_fcd/raw_data/svs
+out_root_dir=/project/6007967/ext-data/hammond_hist_fcd/proc_svs
 
 
 echo ""
