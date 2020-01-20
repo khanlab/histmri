@@ -11,8 +11,8 @@ histmri_repo=$execpath/../
 jobs_dir=$execpath/jobs
 
 in_root_dir=/project/6007967/ext-data/hammond_hist_fcd/raw_data/svs
-out_root_dir=/project/6007967/ext-data/hammond_hist_fcd/proc_svs
-
+out_root_dir=/project/6007967/ext-data/hammond_hist_fcd/proc
+out_scratch_dir=/scratch/akhanf/hammond_hist_fcd
 
 echo ""
 echo "Initializing quant histology setup script:"
