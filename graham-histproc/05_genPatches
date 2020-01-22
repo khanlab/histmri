@@ -34,7 +34,7 @@ do
 
   for tif in `ls  $in_root_dir/$subj/tif/*${structure}*${stain}.{tif,svs}`
   do
-   echo runMatlabCmd generatePatches "'$tif'" $out_res $out_pad "'$out_root_dir'" "'$out_scratch_dir'" >> $joblist
+   echo runMatlabCmd generatePatches "'$tif'" $out_res $out_pad "'$out_root_dir'" >> $joblist
   done
 
 done
