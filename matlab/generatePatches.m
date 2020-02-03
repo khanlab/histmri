@@ -1,4 +1,4 @@
-function  generatePatches(tif,res_microns,pad_microns,out_root_dir)
+function  generatePatches(tif,res_microns,pad_microns,out_root_dir,patchsize)
 %subj,specimen,slice,stain)
 
 init_openslide;
@@ -55,7 +55,7 @@ end
 
 
 featdir=sprintf('%s/%s/%s_FeatureMaps',out_root_dir,subj,out_name);
-patchdir=sprintf('%s/%s/%s_Patches',out_root_dir,subj,out_name);
+patchdir=sprintf('%s/%s/%s_Patches_%dx%d',out_root_dir,subj,out_name,patchsize);
 mkdir(patchdir);
 
 
@@ -88,9 +88,12 @@ for i=1:Nx
 
 		disp(sprintf('about to get patch for i=%03d, j=%03d',i,j));
 	        [img]=getHiresChunkOpenslide(openslidePointer,Nx,Ny,i,j,0,padWidth);
-		out_png=sprintf('%s/%s_RGB_%03d_%03d.png',scratch_dir,name,i,j);
-		disp(sprintf('saving as: %s',out_png));
-		imwrite(img,out_png);
+
+		%resample to patchsize x patchsize
+		
+		out_jpg=sprintf('%s/%s_RGB_%03d_%03d.jpg',scratch_dir,name,i,j);
+		disp(sprintf('saving as: %s',out_jpg));
+		imwrite(imresize(img,[patchsize patchsize]),out_png);
        end 
        
         
@@ -106,7 +109,7 @@ for i=1:Nx
     end
 
     %all patches in scratch_dir now, tar them up and save in patchdir
-    tar(out_tar,'*.png',scratch_dir);
+    tar(out_tar,'*.jpg',scratch_dir);
 end
 
 
