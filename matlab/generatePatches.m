@@ -55,7 +55,7 @@ end
 
 
 featdir=sprintf('%s/%s/%s_FeatureMaps',out_root_dir,subj,out_name);
-patchdir=sprintf('%s/%s/%s_Patches_%dx%d',out_root_dir,subj,out_name,patchsize);
+patchdir=sprintf('%s/%s/%s_Patches_%dx%d',out_root_dir,subj,out_name,patchsize,patchsize);
 mkdir(patchdir);
 
 
@@ -93,7 +93,7 @@ for i=1:Nx
 		
 		out_jpg=sprintf('%s/%s_RGB_%03d_%03d.jpg',scratch_dir,name,i,j);
 		disp(sprintf('saving as: %s',out_jpg));
-		imwrite(imresize(img,[patchsize patchsize]),out_png);
+		imwrite(imresize(img,[patchsize patchsize]),out_jpg);
        end 
        
         
