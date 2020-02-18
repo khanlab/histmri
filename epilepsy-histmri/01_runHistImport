@@ -1,0 +1,41 @@
+#!/bin/bash
+
+
+if [ "$#" -lt 4 ]
+then
+echo "Usage: $0 <in_hist_dir> <out_root_dir> <out_res_um, e.g. 100> <subjids>"
+exit 0
+fi
+
+data_dir=$1
+out_dir=$2
+out_res=$3
+
+
+shift 3
+for subj in $@
+do
+
+#first, generate default orientation csv if does not exist
+jpx_dir=$data_dir/$subj/jpx
+csv=$jpx_dir/orientation.csv
+ 
+if [ ! -e $csv ]
+then
+  echo "Warning: orientation.csv does not exist for $subj, creating default orientation.csv"
+
+pushd $jpx_dir  
+for jpx in `ls *.jpx`
+do
+echo "$jpx,1" >> orientation.csv
+done
+popd
+ 
+fi
+
+
+#now run import script
+#runMatlabCmd genHistNiftiPngFromThumbnail "'$data_dir'" "'$out_dir'" "$out_res" "'$subj'"
+
+
+done

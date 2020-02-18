@@ -21,8 +21,8 @@ for subj in $@
 do
 
 
- echo runMatlabCmd generateGrayscaleRGB "'$data_dir'" "'$subj'" "'$structure'" "'$stain'" "$resolution" "'$out_dir'" 
- runMatlabCmd generateGrayscaleRGB "'$data_dir'" "'$subj'" "'$structure'" "'$stain'" "$resolution" "'$out_dir'" 
+ echo runMatlabCmd generateGrayscaleRGB_JPX "'$data_dir'" "'$subj'" "'$structure'" "'$stain'" "$resolution" "'$out_dir'" 
+ runMatlabCmd generateGrayscaleRGB_JPX "'$data_dir'" "'$subj'" "'$structure'" "'$stain'" "$resolution" "'$out_dir'" 
  
 
 

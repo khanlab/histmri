@@ -76,11 +76,11 @@ do
  coreg_dir=$out_dir/$subj/coregisterToHE
 
 
- for tif in `ls  $hist_dir/$subj/tif/${subj}_${struct}_*_${stain}.tif`
+ for jpx in `ls  $hist_dir/$subj/jpx/${subj}_${struct}_*_${stain}.jpx`
  do
 
-  prefix=${tif##*/}
-  prefix=${prefix%.tif}
+  prefix=${jpx##*/}
+  prefix=${prefix%.jpx}
   
   matfile=$work_dir/$prefix.mat
 # if [ -e $matfile  ]
@@ -91,8 +91,8 @@ do
   
 #  if [ -n "$orient_vars" ]
 #  then
-#  echo runMatlabCmd convertOrientationFeatureMapToNifti "'$feat_dir'" "$orient_vars" "'$tif'"
-#  runMatlabCmd convertOrientationFeatureMapToNifti "'$feat_dir'" "$orient_vars" "'$tif'"
+#  echo runMatlabCmd convertOrientationFeatureMapToNifti "'$feat_dir'" "$orient_vars" "'$jpx'"
+#  runMatlabCmd convertOrientationFeatureMapToNifti "'$feat_dir'" "$orient_vars" "'$jpx'"
 #  fi
 # else
 #  echo "mat file for feature vec, $matfile, does not exist!"  
@@ -168,6 +168,6 @@ fi
  done #nii  (once for each feature)
 
 
- done #tif
+ done #jpx
 
  done #subj

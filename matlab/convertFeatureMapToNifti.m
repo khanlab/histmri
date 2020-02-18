@@ -11,12 +11,12 @@ for f=1:length(mat_files)
     
     [path,name,~]=fileparts(featmap);
     
-    tif_dir=sprintf('%s/%s/tif',hist_dir,subj);
+    jpx_dir=sprintf('%s/%s/jpx',hist_dir,subj);
     
-    tif=sprintf('%s/%s.tif',hist_dir,name);
+    jpx=sprintf('%s/%s.jpx',hist_dir,name);
 
     disp(featmap);
-    disp(tif);    
+    disp(jpx);    
     if (~exist(featmap))
         fprintf('Feature map %s does not exist!\n',featmap);
         continue
@@ -36,7 +36,7 @@ for f=1:length(mat_files)
     end
     
     
-    orientcsv=sprintf('%s/orientation.csv',tif_dir);
+    orientcsv=sprintf('%s/orientation.csv',jpx_dir);
     
     
     for i=1:length(features)
@@ -46,7 +46,7 @@ for f=1:length(mat_files)
         outdir=sprintf('%s/histspace/%s',path,features{i});
         mkdir(outdir);
         
-        featRot=rotateImgTiffSpaceWithOrient(featureVec(:,:,i),tif,orientcsv);
+        featRot=rotateImgTiffSpaceWithOrient(featureVec(:,:,i),jpx,orientcsv);
         
         if(~exist('res_microns'))
             res_microns=100

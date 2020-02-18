@@ -114,6 +114,9 @@ subj=$6
 shift 5
 th=200
 
+hist_uthrp=80
+hist_uthr=240
+
 while getopts "t:" options; do
  case $options in
     t ) echo "Threshold for Ex-MRI = $OPTARG"
@@ -135,13 +138,13 @@ mkdir -p $OUT
 
 
 #parameters
-REG_RES=0.2
+REG_RES=0.36
 
 
 #eventually should use better stopping criteria
 MAX_ITER=5
 
-SLICE_SPACING=4.4  # in mm
+SLICE_SPACING=0.36  # in mm
 
 
 #1. reorient MRI to standard orientation first
@@ -175,13 +178,13 @@ if [ $hand = NEUROLOGICAL ] ; then
   coronal="RL IS PA"
 else
   coronal="LR IS PA"
+  #coronal="SI LR PA"
 fi
 
 if [ ! -e $MRI_STD ] 
 then
 
- fslswapdim $in_mri $coronal $MRI_STD
-
+ fslswapdim $in_mri $coronal $MRI_STD 
 fi
 
 
@@ -381,14 +384,13 @@ fi
 #perhaps don't include tx,ty,tz from mri yet... 
 
 
- th=50
 
  #threshold out background 
  HISTSLICE_TH=$IMG_DIR/hist_slice_th${th}_$ii.nii.gz
 if [ ! -e $HISTSLICE_TH ]
 then
- echo fslmaths $HISTSLICE -uthrp 50 $HISTSLICE_TH
- fslmaths $HISTSLICE -uthrp 50 $HISTSLICE_TH
+ echo fslmaths $HISTSLICE -uthr $hist_uthr $HISTSLICE_TH
+ fslmaths $HISTSLICE -uthr $hist_uthr $HISTSLICE_TH
 fi
 
  #get center of mass of hist slice, and center of mri image

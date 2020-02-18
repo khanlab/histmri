@@ -40,11 +40,8 @@ for f=1:length(jpx_files)
     scalefac=2.^reduction_level;
     
     
-    ds_size=ceil(imgSizes(1,:)./scalefac);
-    Nx=ds_size(1);
-    Ny=ds_size(2);
-    
-    
+  %  ds_size=ceil(imgSizes(1,:)./scalefac);
+   
     
  %   imgresolutions=imgSizes(1)./imgSizes(:,1)*hist_res;
     
@@ -58,8 +55,12 @@ for f=1:length(jpx_files)
     
     
     %img=imread(jpx,whichImg,'PixelRegion',{[1,imgSizes(whichImg,1)],[1,imgSizes(whichImg,2)]});
-    img=imread(jpx,whichImg,'PixelRegion',{[1,imgSizes(whichImg,1)],[1,imgSizes(whichImg,2)]});
-    img_resized=imresize(img,[Nx,Ny]);
+    img_resized=imread(jpx,'ReductionLevel',reduction_level);
+    %img_resized=imresize(img,[Nx,Ny]);
+    ds_size=size(img_resized);
+     Nx=ds_size(1);
+    Ny=ds_size(2);
+    
     
     
     

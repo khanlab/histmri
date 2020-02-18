@@ -1,0 +1,93 @@
+#!/bin/bash
+
+function usage {
+ 
+ echo "Runs ex-hist registration scripts for epilepsy Neo/Hp"
+ echo ""
+ echo "  REQUIRES: "
+ echo "     <in_hist_dir>/<subj>/tif:  containing  HE and NEUN tif files & orientation.csv"
+ echo "     <in_mri_dir>/<subj>/path/to/mri_nii_gz  (MRI image)"
+ echo ""
+ echo " Creates output files in <out_root_dir>"
+ echo ""
+ echo " Usage:  $0 <in_mri_dir> <path_to_mri_nii_gz> <in_hist_dir> <out_root_dir> <subjid> <opts>" 
+ echo "   -t <th>		Set threshold for ex-vivo MRI (default 50; use 0 if already masked)"
+ echo ""
+ echo ""
+ exit 0 
+}
+
+
+
+
+if [ "$#" -lt 5 ]
+then
+
+usage
+
+fi
+
+
+
+execpath=`dirname $0`
+
+
+mri_dir=$1
+mri_path=$2
+hist_dir=$3
+out_dir=$4
+subj=$5
+shift 5
+
+
+struct=Brain
+stain=BDA
+
+
+#check if required files exist:
+in_mri=`ls $mri_dir/$subj/$mri_path  | head -n 1`
+if [ -e "$in_mri" ]
+then
+echo "Input MRI: $in_mri"
+else
+    echo "Cannot find input MRI in $mri_dir/$subj/$mri_path"
+    exit 1
+fi
+
+
+
+#orient_csv=$hist_dir/$subj/tif/orientation.csv
+#if [ ! -e $orient_csv ]
+#then
+#     echo "orientation.csv does not exist in $hist_dir/$subj/tif !"
+#     exit 1
+# fi
+
+#working resolution in microns (100um typical)
+res_um=64
+
+
+#this just craetes the orientation csv (default: 1 for all)
+echo $execpath/01_runHistImport  $hist_dir $out_dir ${res_um} $subj
+
+#import BDA grayscale & rgb as .mat files at ${res_um}um resolution
+echo  $execpath/02_importHistMatGrayscaleRGB  $hist_dir $out_dir $struct $stain ${res_um} $subj
+
+
+#convert from .mat to nii
+echo $execpath/31_genHistspaceFeatureMaps  $hist_dir $out_dir $struct $stain ${res_um} ${res_um}um_Grayscale $subj
+
+
+#register ex MRI to HE (creating linear aligned space)
+ $execpath/20_registerHistToMRI $in_mri $out_dir $struct $stain ${res_um} $subj
+
+
+#generate aligned space hist images
+echo $execpath/32_genAlignedFeatureMaps $out_dir $struct $stain ${res_um} Grayscale $subj
+
+
+#deformable (non-rigid) registration of grayscale HE to MRI
+#$execpath/40_regDeformableStainToAlignedMRI  $out_dir $struct $stain ${res_um} $subj
+
+
+#runMatlabCmd generateFieldFraction "'$hist_dir'" "'$subj'" "'$struct'" "'$stain'" "'$out_dir'" "${res_um}" "5" 
